@@ -4,3 +4,6 @@ settings.json
 secretnotes.md
 imports/lib/
 public/fonts/
+__pycache__
+*.pyc
+*.pyo
