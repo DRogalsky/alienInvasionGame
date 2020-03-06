@@ -1,5 +1,8 @@
 import sys, pygame
+from time import sleep
+
 from settings import Settings
+from game_stats import GameStats
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
@@ -18,6 +21,9 @@ class AlienInvasion:
         self.settings.screen_height = self.screen.get_rect().height
 
         pygame.display.set_caption("Alien Invasion")
+
+        #Create an instance to store game stats
+        self.stats = GameStats(self)
 
         self.ship = Ship(self)
 
@@ -89,10 +95,18 @@ class AlienInvasion:
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
 
-        # Check for any bullets that have hit aliens.
-        #if so get rid of the bullet and the alien.
+        self._check_bullet_alien_collisions()
+
+    def _check_bullet_alien_collisions(self):
+        """respond to bullet alien collision"""
+        # Remove any bullets and aliens that have collided
         collisions = pygame.sprite.groupcollide(
             self.bullets, self.aliens, True, True)
+
+        if not self.aliens:
+            #destroy exsisting bullets and create new fleet
+            self.bullets.empty()
+            self._create_fleet()
 
     #Fleet methods
 
@@ -151,6 +165,39 @@ class AlienInvasion:
         self._check_fleet_edges()
         self.aliens.update()
 
+        #check for alien ship collision
+        if pygame.sprite.spritecollideany(self.ship, self.aliens):
+            self._ship_hit()
+
+        #check for aliens hitting bottom
+        self._check_aliens_bottom()
+
+    def _check_aliens_bottom(self):
+        """check if aliens have reached the bottom of the screen"""
+        screen_rect = self.screen.get_rect()
+        for alien in self.aliens.sprites():
+            if alien.rect.bottom >= screen_rect.bottom:
+                #same as if ship got hit
+                self._ship_hit()
+                break
+
+    def _ship_hit(self):
+        """respond to the ship bieng hit by an alien"""
+
+        #Decrement ships_left
+        self.stats.ships_left -= 1
+
+        #get rid of any remaining aliens and bullets
+        self.aliens.empty()
+        self.bullets.empty()
+
+        #create new fleet and center the ship
+        self._create_fleet()
+        self.ship.center_ship()
+
+        # Pause
+        sleep(0.5)
+
     def _update_screen(self):
         #Redraw the screen durin each pass through the loop
         self.screen.fill(self.settings.bg_color)
@@ -161,7 +208,6 @@ class AlienInvasion:
 
         #make most recently drawn screen visible
         pygame.display.flip()
-
 
 
 if __name__ == '__main__':
