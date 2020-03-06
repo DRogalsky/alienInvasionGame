@@ -92,6 +92,7 @@ class AlienInvasion:
         button_clicked = self.play_button.rect.collidepoint(mouse_pos)
         if button_clicked and not self.stats.game_active:
             #reset game stats
+            self.settings.initialize_dynamic_settings()
             self.stats.reset_stats()
             self.stats.game_active = True
 
@@ -102,6 +103,9 @@ class AlienInvasion:
             #create a new fleet and center ship
             self._create_fleet()
             self.ship.center_ship()
+
+            #hide mouse cursor
+            pygame.mouse.set_visible(False)
 
     #Bullet Methods
 
@@ -133,6 +137,8 @@ class AlienInvasion:
             #destroy exsisting bullets and create new fleet
             self.bullets.empty()
             self._create_fleet()
+            self.settings.increase_speed()
+            print(self.settings.ship_speed)
 
     #Fleet methods
 
@@ -226,6 +232,7 @@ class AlienInvasion:
             sleep(0.5)
         else:
             self.stats.game_active = False
+            pygame.mouse.set_visible(True)
 
     def _update_screen(self):
         #Redraw the screen durin each pass through the loop
